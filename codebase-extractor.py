@@ -9,39 +9,50 @@ def parse_arguments():
     parser.add_argument('-e', '--extensions', nargs='+', default=['.py', '.txt', '.md'], help='File extensions to include (e.g., .py .txt .md)')
     parser.add_argument('-x', '--exclude', nargs='+', default=['.git', '__pycache__', 'venv', 'node_modules'], help='Directories to exclude')
     parser.add_argument('-o', '--output', type=str, default='output', help='Output file prefix')
+    parser.add_argument('-i', '--include-hidden', action='store_true', help='Include hidden files and directories (starting with a dot)')
     return parser.parse_args()
 
 def is_plaintext_file(filename, include_extensions):
     _, ext = os.path.splitext(filename)
     return ext.lower() in include_extensions
 
-def generate_tree_hierarchy(root_dir, exclude_dirs):
+def generate_tree_hierarchy(root_dir, exclude_dirs, include_hidden):
     tree_lines = []
     for root, dirs, files in os.walk(root_dir):
-        # Exclude specified directories
-        dirs[:] = [d for d in dirs if d not in exclude_dirs]
-        level = root.replace(root_dir, '').count(os.sep)
+        # Exclude specified directories and hidden directories
+        dirs[:] = [
+            d for d in dirs
+            if (include_hidden or not d.startswith('.')) and d not in exclude_dirs
+        ]
+        level = os.path.relpath(root, root_dir).count(os.sep)
         indent = '    ' * level
         subdir = os.path.basename(root)
         if level == 0:
             tree_lines.append(f'{subdir}/')
         else:
             tree_lines.append(f'{indent}{subdir}/')
+        # Filter hidden files if include_hidden is False
+        files = [f for f in files if include_hidden or not f.startswith('.')]
         for f in sorted(files):
             path = os.path.join(root, f)
             indent = '    ' * (level + 1)
             tree_lines.append(f'{indent}{f}')
     return tree_lines
 
-def scan_directory(root_dir, include_extensions, exclude_dirs):
+def scan_directory(root_dir, include_extensions, exclude_dirs, include_hidden):
     file_contents = []
     for current_path, dirs, files in os.walk(root_dir):
-        # Exclude specified directories
-        dirs[:] = [d for d in dirs if d not in exclude_dirs]
+        # Exclude specified directories and hidden directories
+        dirs[:] = [
+            d for d in dirs
+            if (include_hidden or not d.startswith('.')) and d not in exclude_dirs
+        ]
+        # Filter hidden files if include_hidden is False
+        files = [f for f in files if include_hidden or not f.startswith('.')]
         for file_name in files:
+            full_path = os.path.join(current_path, file_name)
+            rel_path = os.path.relpath(full_path, root_dir)
             if is_plaintext_file(file_name, include_extensions):
-                full_path = os.path.join(current_path, file_name)
-                rel_path = os.path.relpath(full_path, root_dir)
                 try:
                     with open(full_path, 'r', encoding='utf-8') as f:
                         content = f.read()
@@ -70,12 +81,13 @@ def main():
     include_extensions = [ext if ext.startswith('.') else f'.{ext}' for ext in args.extensions]
     include_extensions = [ext.lower() for ext in include_extensions]
     exclude_dirs = set(args.exclude)
+    include_hidden = args.include_hidden
 
     # Generate file hierarchy map
-    tree_hierarchy = generate_tree_hierarchy(root_dir, exclude_dirs)
+    tree_hierarchy = generate_tree_hierarchy(root_dir, exclude_dirs, include_hidden)
 
     # Scan directory and get file contents with metadata
-    file_contents = scan_directory(root_dir, include_extensions, exclude_dirs)
+    file_contents = scan_directory(root_dir, include_extensions, exclude_dirs, include_hidden)
 
     # Write the tree hierarchy to a text file
     hierarchy_file = f'{args.output}_hierarchy.txt'

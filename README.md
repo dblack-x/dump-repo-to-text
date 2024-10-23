@@ -7,6 +7,8 @@ A Python script that extracts the file hierarchy and contents of plaintext files
 - **Traverse Directories**: Recursively scans the specified root directory.
 - **Include Specific File Types**: Only includes files with specified extensions (e.g., `.py`, `.txt`, `.md`).
 - **Exclude Specific Directories**: Skips over directories like `.git`, `__pycache__`, `venv`, and `node_modules`.
+- **Ignore Hidden Files and Directories**: By default, files and directories starting with a dot (`.`) are ignored.
+- **Option to Include Hidden Files**: Use a command-line flag to include hidden files and directories.
 - **Generate Tree-like Hierarchy Map**: Creates a visual representation of the directory structure.
 - **Extract File Contents with Metadata**: Reads the contents of each file and includes metadata such as last modified time and file size.
 - **Command-Line Interface (CLI)**: Customize the utility through command-line arguments.
@@ -25,7 +27,7 @@ Clone this repository or download the script directly.
 
 Navigate to the directory containing the script:
 
-    cd dump-repo-to-text
+    cd codebase-extractor
 
 Run the script with default settings:
 
@@ -37,6 +39,7 @@ Run the script with default settings:
 - `-e`, `--extensions`: File extensions to include (default: `.py`, `.txt`, `.md`)
 - `-x`, `--exclude`: Directories to exclude (default: `.git`, `__pycache__`, `venv`, `node_modules`)
 - `-o`, `--output`: Output file prefix (default: `output`)
+- `-i`, `--include-hidden`: Include hidden files and directories (default: hidden files are ignored)
 
 ### Examples
 
@@ -51,6 +54,10 @@ Run the script with default settings:
 #### Exclude Additional Directories
 
     python codebase_extractor.py -x .git __pycache__ venv build dist
+
+#### Include Hidden Files and Directories
+
+    python codebase_extractor.py -i
 
 #### Specify Output File Names
 
@@ -105,6 +112,8 @@ A JSON file containing an array of file objects with the following fields:
 
 ## Notes
 
+- **Default Behavior**: Hidden files and directories (starting with a dot) are ignored by default.
+- **Include Hidden Files**: Use the `-i` or `--include-hidden` flag to include hidden files and directories.
 - **Encoding**: The script uses UTF-8 encoding for reading and writing files.
 - **Error Handling**: If a file cannot be read, the `file_text` field will contain an error message, and `last_modified` and `size` will be `null`.
 - **Cross-Platform Compatibility**: The script replaces backslashes with forward slashes in file paths for consistency across different operating systems.
