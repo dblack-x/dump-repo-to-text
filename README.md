@@ -27,7 +27,7 @@ Clone this repository or download the script directly.
 
 Navigate to the directory containing the script:
 
-    cd codebase-extractor
+    cd dump-repo-to-text
 
 Run the script with default settings:
 
